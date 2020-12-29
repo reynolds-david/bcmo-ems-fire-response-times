@@ -1,12 +1,12 @@
-#EMS and fire response times in Boone County
-#David Reynolds
+# EMS and fire response times in Boone County
+# David Reynolds
 
-#Import data
+# Import data
 library(tidyverse)
 setwd("~/Downloads/Documents/Mizzou/2020-21/EMS response times")
 ems_fire <- read_csv("ems_fire.csv")
 
-#Rank nature of calls by count
+# Rank nature of calls by count
 nature_rank <- ems_fire %>%
   count(Nature, sort = T) %>%
   group_by(Nature)
