@@ -300,7 +300,7 @@ bhc_nature_rank <- bhc %>%
   count(Nature, sort = T) %>%
   group_by(Nature)
 
-#Calculate means for time difference columns
+# Calculate means for time difference columns
 mean(bhc$Call_Dispatch)
 mean(bhc$Dispatch_Enroute)
 mean(bhc$Enroute_Arrive)
