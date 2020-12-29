@@ -159,7 +159,7 @@ summary(Enroute_Arrive_Agency_aov)
 Call_Arrive_Agency_aov <- aov(Call_Arrive ~ Agency, data = ems_fire)
 summary(Call_Arrive_Agency_aov)
 
-#Remove outliers
+# Remove outliers
 ems_fire_hist <- ems_fire
 ems_fire_hist$Call_Dispatch <- as.numeric(ems_fire_hist$Call_Dispatch)
 ems_fire_hist$Dispatch_Enroute <- as.numeric(ems_fire_hist$Dispatch_Enroute)
