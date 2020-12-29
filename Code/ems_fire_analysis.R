@@ -14,12 +14,12 @@ nrow(nature_rank)
 
 write_csv(nature_rank, "/Users/davidreynolds/Downloads/Documents/Mizzou/2020-21/EMS Response Times/nature_rank.csv")
 
-#Calculate proportion of EMS calls dispatched in less than two minutes
+# Calculate proportion of EMS calls dispatched in less than two minutes
 ems_under_two <- ems_fire %>% 
   filter(Service == "EMS", Call_Dispatch < 2)
 nrow(ems_under_two) / nrow(ems) * 100
 
-#Calculate means for time difference columns
+# Calculate means for time difference columns
 mean(ems_fire$Call_Dispatch, na.rm = TRUE)
 mean(ems_fire$Dispatch_Enroute, na.rm = TRUE)
 mean(ems_fire$Enroute_Arrive, na.rm = TRUE)
