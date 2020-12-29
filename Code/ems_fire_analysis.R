@@ -252,7 +252,7 @@ call_dispatch_line
 call_dispatch_aov <- aov(Call_Dispatch ~ Year, data = ems_fire)
 summary(call_dispatch_aov)
 
-#Line plot for Dispatch_Enroute
+# Line plot for Dispatch_Enroute
 dispatch_enroute_year <- ems_fire %>% 
   select(Year, Dispatch_Enroute) %>% 
   group_by(Year) %>% 
@@ -265,7 +265,7 @@ dispatch_enroute_line
 dispatch_enroute_aov <- aov(Dispatch_Enroute ~ Year, data = ems_fire)
 summary(dispatch_enroute_aov)
 
-#Line plot for Enroute_Arrive
+# Line plot for Enroute_Arrive
 enroute_arrive_year <- ems_fire %>% 
   select(Year, Enroute_Arrive) %>% 
   group_by(Year) %>% 
