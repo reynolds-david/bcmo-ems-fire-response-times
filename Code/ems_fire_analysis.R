@@ -370,7 +370,7 @@ step_ca <- 1.5 * (uh_ca - lh_ca)
 bhc_hist_ca <- bhc_hist %>% 
   filter(Call_Arrive > lh_ca - step_ca & Call_Arrive < uh_ca + step_ca)
 
-#Plot histograms for time differences
+# Plot histograms for time differences
 cd_hist <- ggplot(bhc_hist_cd, aes(x = Call_Dispatch)) + 
   geom_histogram(aes(y = ..density..), color = "black", fill = "white") + 
   geom_density(alpha = 0.2, fill = "#66B2FF")
