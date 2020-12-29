@@ -87,7 +87,7 @@ summary(Enroute_Arrive_Alpha_aov)
 Call_Arrive_Alpha_aov <- aov(Call_Arrive ~ Alpha, data = ems_fire_Alpha)
 summary(Call_Arrive_Alpha_aov)
 
-#Calculate mean time differences by Nature
+# Calculate mean time differences by Nature
 ems_fire$Nature <- as.factor(ems_fire$Nature)
 ems_fire$Call_Dispatch <- as.numeric(ems_fire$Call_Dispatch)
 Call_Dispatch_Nature <- ems_fire %>% 
