@@ -283,7 +283,7 @@ call_arrive_year <- ems_fire %>%
   select(Year, Call_Arrive) %>% 
   group_by(Year) %>% 
   summarize(Call_Arrive_Avg = mean(Call_Arrive))
-
+# 608ab1c0def473584ce7ec7a9308e0dd344ac425
 call_arrive_line <- ggplot(data = call_arrive_year, aes(x = Year, y = Call_Arrive_Avg, group = 1)) + 
   geom_line(color = "#66B2FF") + geom_point()
 call_arrive_line
@@ -291,7 +291,7 @@ call_arrive_line
 call_arrive_aov <- aov(Call_Arrive ~ Year, data = ems_fire)
 summary(call_arrive_aov)
 
-##BHC
+## BHC
 bhc <- ems_fire %>% 
   filter(Agency == "BHC")
 
