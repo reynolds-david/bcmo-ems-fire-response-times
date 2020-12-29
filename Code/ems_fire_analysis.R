@@ -339,7 +339,7 @@ bhc_ca_Nature <- bhc %>%
   arrange(desc(mean_ca)) %>% 
   filter(count_nature > 10)
 
-#Remove outliers
+# Remove outliers
 bhc_hist <- bhc
 bhc_hist$Call_Dispatch <- as.numeric(bhc_hist$Call_Dispatch)
 bhc_hist$Dispatch_Enroute <- as.numeric(bhc_hist$Dispatch_Enroute)
