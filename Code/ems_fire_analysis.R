@@ -25,7 +25,7 @@ mean(ems_fire$Dispatch_Enroute, na.rm = TRUE)
 mean(ems_fire$Enroute_Arrive, na.rm = TRUE)
 mean(ems_fire$Call_Arrive, na.rm = TRUE)
 
-#Calculate mean time differences by Service
+# Calculate mean time differences by Service
 ems <- ems_fire %>% 
   filter(Service == "EMS")
 mean(ems$Call_Dispatch, na.rm = TRUE)
