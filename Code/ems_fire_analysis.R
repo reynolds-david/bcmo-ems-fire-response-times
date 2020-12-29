@@ -235,11 +235,11 @@ ca_hist <- ggplot(ems_fire_hist_ca, aes(x = Call_Arrive)) +
   geom_density(alpha = 0.2, fill = "#66B2FF")
 ca_hist
 
-#Extract year
+# Extract year
 library(stringr)
 ems_fire$Year <- str_sub(ems_fire$CallDate, 1, 4)
 
-#Line plot for Call_Dispatch
+# Line plot for Call_Dispatch
 call_dispatch_year <- ems_fire %>% 
   select(Year, Call_Dispatch) %>% 
   group_by(Year) %>% 
