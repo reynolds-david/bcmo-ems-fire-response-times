@@ -461,7 +461,7 @@ mean(uhc$Dispatch_Enroute)
 mean(uhc$Enroute_Arrive)
 mean(uhc$Call_Arrive)
 
-#Calculate time differences by nature
+# Calculate time differences by nature
 uhc$Call_Dispatch <- as.numeric(uhc$Call_Dispatch)
 uhc_cd_Nature <- uhc %>% 
   select(Nature, Call_Dispatch) %>%
