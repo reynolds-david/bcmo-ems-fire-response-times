@@ -450,7 +450,7 @@ summary(call_arrive_aov)
 uhc <- ems_fire %>% 
   filter(Agency == "UHC")
 
-#Rank nature of calls by count
+# Rank nature of calls by count
 uhc_nature_rank <- uhc %>%
   count(Nature, sort = T) %>%
   group_by(Nature)
