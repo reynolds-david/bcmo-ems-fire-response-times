@@ -407,7 +407,7 @@ call_dispatch_line
 call_dispatch_aov <- aov(Call_Dispatch ~ Year, data = bhc)
 summary(call_dispatch_aov)
 
-#Line plot for Dispatch_Enroute
+# Line plot for Dispatch_Enroute
 dispatch_enroute_year <- bhc %>% 
   select(Year, Dispatch_Enroute) %>% 
   group_by(Year) %>% 
