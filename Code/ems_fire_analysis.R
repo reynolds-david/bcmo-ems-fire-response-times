@@ -446,7 +446,7 @@ call_arrive_line
 call_arrive_aov <- aov(Call_Arrive ~ Year, data = bhc)
 summary(call_arrive_aov)
 
-##UHC
+## UHC
 uhc <- ems_fire %>% 
   filter(Agency == "UHC")
 
