@@ -283,7 +283,6 @@ call_arrive_year <- ems_fire %>%
   select(Year, Call_Arrive) %>% 
   group_by(Year) %>% 
   summarize(Call_Arrive_Avg = mean(Call_Arrive))
-# 608ab1c0def473584ce7ec7a9308e0dd344ac425
 call_arrive_line <- ggplot(data = call_arrive_year, aes(x = Year, y = Call_Arrive_Avg, group = 1)) + 
   geom_line(color = "#66B2FF") + geom_point()
 call_arrive_line
@@ -395,7 +394,7 @@ ca_hist
 library(stringr)
 bhc$Year <- str_sub(bhc$CallDate, 1, 4)
 
-#Line plot for Call_Dispatch
+# Line plot for Call_Dispatch
 call_dispatch_year <- bhc %>% 
   select(Year, Call_Dispatch) %>% 
   group_by(Year) %>% 
