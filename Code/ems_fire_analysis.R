@@ -390,7 +390,7 @@ ca_hist <- ggplot(bhc_hist_ca, aes(x = Call_Arrive)) +
   geom_density(alpha = 0.2, fill = "#66B2FF")
 ca_hist
 
-#Extract year
+# Extract year
 library(stringr)
 bhc$Year <- str_sub(bhc$CallDate, 1, 4)
 
