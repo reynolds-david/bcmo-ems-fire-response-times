@@ -455,7 +455,7 @@ uhc_nature_rank <- uhc %>%
   count(Nature, sort = T) %>%
   group_by(Nature)
 
-#Calculate means for time difference columns
+# Calculate means for time difference columns
 mean(uhc$Call_Dispatch)
 mean(uhc$Dispatch_Enroute)
 mean(uhc$Enroute_Arrive)
