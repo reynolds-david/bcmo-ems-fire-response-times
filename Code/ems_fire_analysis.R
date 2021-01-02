@@ -420,7 +420,7 @@ dispatch_enroute_line
 dispatch_enroute_aov <- aov(Dispatch_Enroute ~ Year, data = bhc)
 summary(dispatch_enroute_aov)
 
-#Line plot for Enroute_Arrive
+# Line plot for Enroute_Arrive
 enroute_arrive_year <- bhc %>% 
   select(Year, Enroute_Arrive) %>% 
   group_by(Year) %>% 
