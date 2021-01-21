@@ -929,7 +929,7 @@ enroute_arrive_line
 enroute_arrive_aov <- aov(Enroute_Arrive ~ Year, data = ems)
 summary(enroute_arrive_aov)
 
-#Line plot for Call_Arrive
+# Line plot for Call_Arrive
 call_arrive_year <- ems %>% 
   select(Year, Call_Arrive) %>% 
   group_by(Year) %>% 
