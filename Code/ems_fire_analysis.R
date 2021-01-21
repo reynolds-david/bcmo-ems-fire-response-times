@@ -494,7 +494,7 @@ uhc_ca_Nature <- uhc %>%
   arrange(desc(mean_ca)) %>% 
   filter(count_nature > 10)
 
-#Remove outliers
+# Remove outliers
 uhc_hist <- uhc
 uhc_hist$Call_Dispatch <- as.numeric(uhc_hist$Call_Dispatch)
 uhc_hist$Dispatch_Enroute <- as.numeric(uhc_hist$Dispatch_Enroute)
