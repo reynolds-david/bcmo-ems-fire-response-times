@@ -650,7 +650,7 @@ bcfd_ca_Nature <- bcfd %>%
   arrange(desc(mean_ca)) %>% 
   filter(count_nature > 10)
 
-#Remove outliers
+# Remove outliers
 bcfd_hist <- bcfd
 bcfd_hist$Call_Dispatch <- as.numeric(bcfd_hist$Call_Dispatch)
 bcfd_hist$Dispatch_Enroute <- as.numeric(bcfd_hist$Dispatch_Enroute)
