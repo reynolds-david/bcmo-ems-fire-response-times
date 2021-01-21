@@ -617,7 +617,7 @@ mean(bcfd$Dispatch_Enroute)
 mean(bcfd$Enroute_Arrive)
 mean(bcfd$Call_Arrive)
 
-#Calculate time differences by nature
+# Calculate time differences by nature
 bcfd$Call_Dispatch <- as.numeric(bcfd$Call_Dispatch)
 bcfd_cd_Nature <- bcfd %>% 
   select(Nature, Call_Dispatch) %>%
