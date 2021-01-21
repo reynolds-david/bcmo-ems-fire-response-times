@@ -606,12 +606,12 @@ summary(call_arrive_aov)
 bcfd <- ems_fire %>% 
   filter(Agency == "BCFD")
 
-#Rank nature of calls by count
+# Rank nature of calls by count
 bcfd_nature_rank <- bcfd %>%
   count(Nature, sort = T) %>%
   group_by(Nature)
 
-#Calculate means for time difference columns
+# Calculate means for time difference columns
 mean(bcfd$Call_Dispatch)
 mean(bcfd$Dispatch_Enroute)
 mean(bcfd$Enroute_Arrive)
