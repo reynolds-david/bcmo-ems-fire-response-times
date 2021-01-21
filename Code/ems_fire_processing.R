@@ -54,7 +54,7 @@ proj4string <- "+proj=tmerc +lat_0=35.83333333333334 +lon_0=-92.5 +k=0.999933333
 
 # Project data
 pj <- project(xy, proj4string, inverse = TRUE)
-latlon <- data.frame(lat = pj$y, lon = pj$x)
+latlon <- data.frame(lat = pj$x, lon = pj$y)
 
 # Join data
 ems_fire <- cbind(ems_fire, latlon)
@@ -66,10 +66,10 @@ ems_fire <- ems_fire %>%
          "agency" = Agency, "nature" = Nature, "unit" = PrimaryUnit, call_dispatch, 
          dispatch_enroute, enroute_arrive, call_arrive, "street" = Street, "x" = GeoX, "y" = GeoY, lat, lon)
 
+ems_fire <- subset(ems_fire, x != 0 & y != 0)
+
 # Save data as CSV file
-write_csv(ems_fire, "/Users/davidreynolds/Downloads/Documents/Mizzou/2020-21/EMS response times/ems_fire.csv")
-
-
+write_csv(ems_fire, "/Users/davidreynolds/Downloads/Documents/Mizzou/2020-21/Classes/Spring semester/STAT 8090/bcmo-ems-fire-response-times/Data/ems_fire.csv")
 
 # Group by time interval and address
 ems_fire$Street <- as.factor(ems_fire$Street)
