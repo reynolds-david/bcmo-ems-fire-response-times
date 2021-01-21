@@ -54,7 +54,7 @@ proj4string <- "+proj=tmerc +lat_0=35.83333333333334 +lon_0=-92.5 +k=0.999933333
 
 # Project data
 pj <- project(xy, proj4string, inverse = TRUE)
-latlon <- data.frame(lat = pj$x, lon = pj$y)
+latlon <- data.frame(lat = pj$y, lon = pj$x)
 
 # Join data
 ems_fire <- cbind(ems_fire, latlon)
@@ -66,6 +66,7 @@ ems_fire <- ems_fire %>%
          "agency" = Agency, "nature" = Nature, "unit" = PrimaryUnit, call_dispatch, 
          dispatch_enroute, enroute_arrive, call_arrive, "street" = Street, "x" = GeoX, "y" = GeoY, lat, lon)
 
+# Remove observations with (0, 0)
 ems_fire <- subset(ems_fire, x != 0 & y != 0)
 
 # Save data as CSV file

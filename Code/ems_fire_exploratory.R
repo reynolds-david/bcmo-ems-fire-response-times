@@ -7,7 +7,7 @@ ems_fire <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnncnnnn")
 
 # Plot all points
 library(ggplot2)
-ggplot(data = ems_fire, aes(x = lat, y = lon)) + geom_point()
+ggplot(data = ems_fire, aes(x = lon, y = lat)) + geom_point()
 
 # Take a random sample of calls
 set.seed(1)
