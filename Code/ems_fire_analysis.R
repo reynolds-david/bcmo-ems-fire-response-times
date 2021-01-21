@@ -550,7 +550,7 @@ ca_hist
 library(stringr)
 uhc$Year <- str_sub(uhc$CallDate, 1, 4)
 
-#Line plot for Call_Dispatch
+# Line plot for Call_Dispatch
 call_dispatch_year <- uhc %>% 
   select(Year, Call_Dispatch) %>% 
   group_by(Year) %>% 
