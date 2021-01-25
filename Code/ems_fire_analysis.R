@@ -46,7 +46,7 @@ t.test(Dispatch_Enroute ~ Service, data = ems_fire)
 t.test(Enroute_Arrive ~ Service, data = ems_fire)
 t.test(Call_Arrive ~ Service, data = ems_fire)
 
-#Calculate mean time differences by Alpha
+# Calculate mean time differences by Alpha
 ems_fire_Alpha <- ems_fire %>% 
   filter(Alpha == "O" | Alpha == "A" | Alpha == "B" | Alpha == "C" | Alpha == "D" | Alpha == "E")
 
@@ -121,7 +121,7 @@ Call_Arrive_Nature <- ems_fire %>%
   arrange(desc(mean_ca)) %>% 
   filter(count_nature > 10)
 
-#Calculate mean time differences by agency
+# Calculate mean time differences by agency
 Call_Dispatch_Agency <- ems_fire %>% 
   select(Agency, Call_Dispatch) %>% 
   group_by(Agency) %>% 
@@ -198,7 +198,7 @@ ems_fire_hist_ca <- ems_fire_hist %>%
 nrow(ems_fire) - nrow(ems_fire_hist_ca)
 (nrow(ems_fire_hist_ca) - nrow(ems_fire)) / nrow(ems_fire)
 
-#Plot histograms for time differences
+# Plot histograms for time differences
 call_dispatch_hist <- ggplot(ems_fire_hist, aes(x = Call_Dispatch)) + 
   geom_histogram(aes(y = ..density..), color = "black", fill = "white") + 
   geom_density(alpha = 0.2, fill = "#66B2FF")
@@ -546,7 +546,7 @@ ca_hist <- ggplot(uhc_hist_ca, aes(x = Call_Arrive)) +
   geom_density(alpha = 0.2, fill = "#66B2FF")
 ca_hist
 
-#Extract year
+# Extract year
 library(stringr)
 uhc$Year <- str_sub(uhc$CallDate, 1, 4)
 
@@ -563,7 +563,7 @@ call_dispatch_line
 call_dispatch_aov <- aov(Call_Dispatch ~ Year, data = uhc)
 summary(call_dispatch_aov)
 
-#Line plot for Dispatch_Enroute
+# Line plot for Dispatch_Enroute
 dispatch_enroute_year <- uhc %>% 
   select(Year, Dispatch_Enroute) %>% 
   group_by(Year) %>% 
@@ -576,7 +576,7 @@ dispatch_enroute_line
 dispatch_enroute_aov <- aov(Dispatch_Enroute ~ Year, data = uhc)
 summary(dispatch_enroute_aov)
 
-#Line plot for Enroute_Arrive
+# Line plot for Enroute_Arrive
 enroute_arrive_year <- uhc %>% 
   select(Year, Enroute_Arrive) %>% 
   group_by(Year) %>% 
@@ -589,7 +589,7 @@ enroute_arrive_line
 enroute_arrive_aov <- aov(Enroute_Arrive ~ Year, data = uhc)
 summary(enroute_arrive_aov)
 
-#Line plot for Call_Arrive
+# Line plot for Call_Arrive
 call_arrive_year <- uhc %>% 
   select(Year, Call_Arrive) %>% 
   group_by(Year) %>% 
@@ -602,7 +602,7 @@ call_arrive_line
 call_arrive_aov <- aov(Call_Arrive ~ Year, data = uhc)
 summary(call_arrive_aov)
 
-##BCFD
+## BCFD
 bcfd <- ems_fire %>% 
   filter(Agency == "BCFD")
 
@@ -681,7 +681,7 @@ step_ca <- 1.5 * (uh_ca - lh_ca)
 bcfd_hist_ca <- bcfd_hist %>% 
   filter(Call_Arrive > lh_ca - step_ca & Call_Arrive < uh_ca + step_ca)
 
-#Plot histograms for time differences
+# Plot histograms for time differences
 cd_hist <- ggplot(bcfd_hist_cd, aes(x = Call_Dispatch)) + 
   geom_histogram(aes(y = ..density..), color = "black", fill = "white") + 
   geom_density(alpha = 0.2, fill = "#66B2FF")
@@ -702,11 +702,11 @@ ca_hist <- ggplot(bcfd_hist_ca, aes(x = Call_Arrive)) +
   geom_density(alpha = 0.2, fill = "#66B2FF")
 ca_hist
 
-#Extract year
+# Extract year
 library(stringr)
 bcfd$Year <- str_sub(bcfd$CallDate, 1, 4)
 
-#Line plot for Call_Dispatch
+# Line plot for Call_Dispatch
 call_dispatch_year <- bcfd %>% 
   select(Year, Call_Dispatch) %>% 
   group_by(Year) %>% 
@@ -719,7 +719,7 @@ call_dispatch_line
 call_dispatch_aov <- aov(Call_Dispatch ~ Year, data = bcfd)
 summary(call_dispatch_aov)
 
-#Line plot for Dispatch_Enroute
+# Line plot for Dispatch_Enroute
 dispatch_enroute_year <- bcfd %>% 
   select(Year, Dispatch_Enroute) %>% 
   group_by(Year) %>% 
@@ -732,7 +732,7 @@ dispatch_enroute_line
 dispatch_enroute_aov <- aov(Dispatch_Enroute ~ Year, data = bcfd)
 summary(dispatch_enroute_aov)
 
-#Line plot for Enroute_Arrive
+# Line plot for Enroute_Arrive
 enroute_arrive_year <- bcfd %>% 
   select(Year, Enroute_Arrive) %>% 
   group_by(Year) %>% 
@@ -745,7 +745,7 @@ enroute_arrive_line
 enroute_arrive_aov <- aov(Enroute_Arrive ~ Year, data = bcfd)
 summary(enroute_arrive_aov)
 
-#Line plot for Call_Arrive
+# Line plot for Call_Arrive
 call_arrive_year <- bcfd %>% 
   select(Year, Call_Arrive) %>% 
   group_by(Year) %>% 
@@ -758,14 +758,14 @@ call_arrive_line
 call_arrive_aov <- aov(Call_Arrive ~ Year, data = bcfd)
 summary(call_arrive_aov)
 
-#Create separate dataframes for before and after new CAD system was put into place
+# Create separate dataframes for before and after new CAD system was put into place
 library(stringr)
 ems_old <- ems_fire %>% 
   filter(CallDate < "2018-01-30", Service == "EMS")
 ems_new <- ems_fire %>% 
   filter(CallDate > "2018-01-29", Service == "EMS")
 
-#Remove old dataframe outliers 
+# Remove old dataframe outliers 
 ems_old$Call_Dispatch <- as.numeric(ems_old$Call_Dispatch)
 ems_old$Dispatch_Enroute <- as.numeric(ems_old$Dispatch_Enroute)
 ems_old$Enroute_Arrive <- as.numeric(ems_old$Enroute_Arrive)
@@ -795,7 +795,7 @@ step_ca <- 1.5 * (uh_ca - lh_ca)
 ems_old_ca <- ems_old %>% 
   filter(Call_Arrive > lh_ca - step_ca & Call_Arrive < uh_ca + step_ca)
 
-#Plot histograms for old dataframe
+# Plot histograms for old dataframe
 cd_hist_old <- ggplot(ems_old_cd, aes(x = Call_Dispatch)) + 
   geom_histogram(aes(y = ..density..), color = "black", fill = "white") + 
   geom_density(alpha = 0.2, fill = "#66B2FF")
@@ -816,7 +816,7 @@ ca_hist_old <- ggplot(ems_old_ca, aes(x = Call_Arrive)) +
   geom_density(alpha = 0.2, fill = "#66B2FF")
 ca_hist_old
 
-#Remove new dataframe outliers 
+# Remove new dataframe outliers 
 ems_new$Call_Dispatch <- as.numeric(ems_new$Call_Dispatch)
 ems_new$Dispatch_Enroute <- as.numeric(ems_new$Dispatch_Enroute)
 ems_new$Enroute_Arrive <- as.numeric(ems_new$Enroute_Arrive)
@@ -846,7 +846,7 @@ step_ca <- 1.5 * (uh_ca - lh_ca)
 ems_new_ca <- ems_new %>% 
   filter(Call_Arrive > lh_ca - step_ca & Call_Arrive < uh_ca + step_ca)
 
-#Plot histograms for old dataframe
+# Plot histograms for old dataframe
 cd_hist_new <- ggplot(ems_new_cd, aes(x = Call_Dispatch)) + 
   geom_histogram(aes(y = ..density..), color = "black", fill = "white") + 
   geom_density(alpha = 0.2, fill = "#66B2FF")
@@ -867,7 +867,7 @@ ca_hist_new <- ggplot(ems_new_ca, aes(x = Call_Arrive)) +
   geom_density(alpha = 0.2, fill = "#66B2FF")
 ca_hist_new
 
-#Compare means for time differences before and after the new CAD system was put into place
+# Compare means for time differences before and after the new CAD system was put into place
 mean(ems_old$Call_Dispatch, na.rm = TRUE)
 mean(ems_new$Call_Dispatch, na.rm = TRUE)
 t.test(ems_old$Call_Dispatch, ems_new$Call_Dispatch)
@@ -884,13 +884,13 @@ mean(ems_old$Call_Arrive, na.rm = TRUE)
 mean(ems_new$Call_Arrive, na.rm = TRUE)
 t.test(ems_old$Call_Arrive, ems_new$Call_Arrive)
 
-#Create dataframe with just EMS calls
+# Create dataframe with just EMS calls
 ems <- ems_fire %>% 
   filter(Service == "EMS")
 library(stringr)
 ems$Year <- str_sub(ems$CallDate, 1, 4)
 
-#Line plot for Call_Dispatch
+# Line plot for Call_Dispatch
 call_dispatch_year <- ems %>% 
   select(Year, Call_Dispatch) %>% 
   group_by(Year) %>% 

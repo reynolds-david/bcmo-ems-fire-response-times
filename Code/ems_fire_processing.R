@@ -59,7 +59,7 @@ latlon <- data.frame(lat = pj$y, lon = pj$x)
 # Join data
 ems_fire <- cbind(ems_fire, latlon)
 
-#Rename columns (ADD ALPHA)
+# Rename columns (ADD ALPHA)
 ems_fire <- ems_fire %>% 
   select("date" = CallDate, year, "call" = CallTime, "dispatch" = FirstDispatchTime, "enroute" = FirstEnroute,
          "arrive" = FirstArrive, "transport" = FirstTransport, "clear" = LastClear, "service" = Service, 
