@@ -64,7 +64,7 @@ ems_fire <- ems_fire %>%
   select("date" = CallDate, year, "call" = CallTime, "dispatch" = FirstDispatchTime, "enroute" = FirstEnroute,
          "arrive" = FirstArrive, "transport" = FirstTransport, "clear" = LastClear, "service" = Service, 
          "agency" = Agency, "nature" = Nature, "unit" = PrimaryUnit, call_dispatch, 
-         dispatch_enroute, enroute_arrive, call_arrive, "street" = Street, "x" = GeoX, "y" = GeoY, lat, lon)
+         dispatch_enroute, enroute_arrive, call_arrive, "street" = Street, "x" = GeoX, "y" = GeoY, lon, lat)
 
 # Remove observations with (0, 0)
 ems_fire <- subset(ems_fire, x != 0 & y != 0)
