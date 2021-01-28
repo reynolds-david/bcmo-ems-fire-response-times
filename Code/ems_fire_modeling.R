@@ -9,4 +9,4 @@ ems_fire <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnncnnnn")
 response <- c("call_dispatch", "dispatch_enroute", "enroute_arrive", "call_arrive")
 ems_fire[, response] <- lapply(ems_fire[, response], log)
 
-# 
+# Blah
