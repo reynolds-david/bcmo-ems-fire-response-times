@@ -10,7 +10,7 @@ fire_18 <- read_excel("2018Fire.xls")
 ems_19 <- read_excel("2019EMS.xls")
 fire_19 <- read_excel("2019Fire.xls")
 
-# Join the data
+# Combine the data
 ems_fire <- rbind(ems_16, fire_16, ems_17, fire_17, ems_18, fire_18, ems_19, fire_19)
 
 # Save original data as CSV
@@ -56,7 +56,7 @@ proj4string <- "+proj=tmerc +lat_0=35.83333333333334 +lon_0=-92.5 +k=0.999933333
 pj <- project(xy, proj4string, inverse = TRUE)
 latlon <- data.frame(lat = pj$y, lon = pj$x)
 
-# Join data
+# Combine data
 ems_fire <- cbind(ems_fire, latlon)
 
 # Rename columns (ADD ALPHA)
