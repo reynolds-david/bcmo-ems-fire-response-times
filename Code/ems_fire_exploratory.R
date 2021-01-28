@@ -6,11 +6,11 @@ library(readr)
 ems_fire <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnncnnnn")
 
 # Convert the responses to numeric
-time_differences <- c("call_dispatch", "dispatch_enroute", "enroute_arrive", "call_arrive")
-ems_fire[, time_differences] <- lapply(ems_fire[, time_differences], as.numeric)
+response <- c("call_dispatch", "dispatch_enroute", "enroute_arrive", "call_arrive")
+ems_fire[, response] <- lapply(ems_fire[, response], as.numeric)
 
 # Take the log of the responses
-ems_fire[, time_differences] <- lapply(ems_fire[, time_differences], log)
+ems_fire[, response] <- lapply(ems_fire[, response], log)
 
 # Plot all points
 library(ggplot2)
