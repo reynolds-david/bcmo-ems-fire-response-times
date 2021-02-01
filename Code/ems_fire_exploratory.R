@@ -3,14 +3,13 @@
 
 # Read in the data
 library(readr)
-ems_fire <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnncnnnn")
+ems_fire <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnnncnnnn")
 
-# Convert the responses to numeric
-response <- c("call_dispatch", "dispatch_enroute", "enroute_arrive", "call_arrive")
-ems_fire[, response] <- lapply(ems_fire[, response], as.numeric)
-
-# Take the log of the responses
-ems_fire[, response] <- lapply(ems_fire[, response], log)
+# Filter for after 1/31/2018 and EMS calls only
+library(dplyr)
+library(lubridate)
+ems_fire <- ems_fire %>% 
+  filter(service == "EMS", call >= ymd_hms("2018-01-31 00:00:00"))
 
 # Plot all points
 library(ggplot2)
@@ -59,7 +58,7 @@ ggplot(data = call_dispatch_melt, aes(x = lon, y = lat, z = call_dispatch)) +
   ggtitle("Time from call to dispatch") +
   xlab("Longitude") +
   ylab("Latitude") +
-  scale_fill_continuous(name = "Time (minutes)", low = "white", high = "blue") +
+  scale_fill_continuous(name = "Log of time (minutes)", low = "white", high = "blue") +
   theme(plot.title = element_text(size = 25, face = "bold"),
         legend.title = element_text(size = 15),
         axis.text = element_text(size = 15),
@@ -90,7 +89,7 @@ ggplot(data = dispatch_enroute_melt, aes(x = lon, y = lat, z = dispatch_enroute)
   ggtitle("Time from dispatch to enroute") +
   xlab("Longitude") +
   ylab("Latitude") +
-  scale_fill_continuous(name = "Time (minutes)", low = "white", high = "blue") +
+  scale_fill_continuous(name = "Log of time (minutes)", low = "white", high = "blue") +
   theme(plot.title = element_text(size = 25, face = "bold"),
         legend.title = element_text(size = 15),
         axis.text = element_text(size = 15),
@@ -121,7 +120,38 @@ ggplot(data = enroute_arrive_melt, aes(x = lon, y = lat, z = enroute_arrive)) +
   ggtitle("Time from enroute to arrival") +
   xlab("Longitude") +
   ylab("Latitude") +
-  scale_fill_continuous(name = "Time (minutes)", low = "white", high = "blue") +
+  scale_fill_continuous(name = "Log of time (minutes)", low = "white", high = "blue") +
+  theme(plot.title = element_text(size = 25, face = "bold"),
+        legend.title = element_text(size = 15),
+        axis.text = element_text(size = 15),
+        axis.title.x = element_text(size = 20, vjust = -0.5),
+        axis.title.y = element_text(size = 20, vjust = 0.2),
+        legend.text = element_text(size = 10))
+
+## dispatch_arrive
+
+# Interpolation
+dispatch_arrive <- with(ems_fire, interp(x = lon, y = lat, z = dispatch_arrive, duplicate = "median"))
+
+# Change data to long format
+dispatch_arrive_melt <- melt(dispatch_arrive$z, na.rm = TRUE)
+names(dispatch_arrive_melt) <- c("x", "y", "dispatch_arrive")
+dispatch_arrive_melt$lon <- dispatch_arrive$x[dispatch_arrive_melt$x]
+dispatch_arrive_melt$lat <- dispatch_arrive$y[dispatch_arrive_melt$y]
+
+# Generate plots using plot and ggplot
+filled.contour(x = dispatch_arrive$x, y = dispatch_arrive$y, z = dispatch_arrive$z, 
+               color.palette = colorRampPalette(c("white", "blue")), xlab = "Longitude", ylab = "Latitude", 
+               main = "Time from dispatch to arrival", key.title = title(main = "Time (m)", 
+                                                                     cex.main = 1))
+
+ggplot(data = dispatch_arrive_melt, aes(x = lon, y = lat, z = dispatch_arrive)) +
+  geom_tile(aes(fill = dispatch_arrive)) +
+  stat_contour() +
+  ggtitle("Time from dispatch to arrival") +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  scale_fill_continuous(name = "Log of time (minutes)", low = "white", high = "blue") +
   theme(plot.title = element_text(size = 25, face = "bold"),
         legend.title = element_text(size = 15),
         axis.text = element_text(size = 15),
@@ -152,7 +182,7 @@ ggplot(data = call_arrive_melt, aes(x = lon, y = lat, z = call_arrive)) +
   ggtitle("Time from call to arrival") +
   xlab("Longitude") +
   ylab("Latitude") +
-  scale_fill_continuous(name = "Time (minutes)", low = "white", high = "blue") +
+  scale_fill_continuous(name = "Log of time (minutes)", low = "white", high = "blue") +
   theme(plot.title = element_text(size = 25, face = "bold"),
         legend.title = element_text(size = 15),
         axis.text = element_text(size = 15),

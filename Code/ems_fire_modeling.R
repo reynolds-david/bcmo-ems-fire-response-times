@@ -5,8 +5,10 @@
 library(readr)
 ems_fire <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnncnnnn")
 
-# Take the log of the responses
-response <- c("call_dispatch", "dispatch_enroute", "enroute_arrive", "call_arrive")
-ems_fire[, response] <- lapply(ems_fire[, response], log)
+# Filter for after 1/31/2018 and EMS calls only
+library(dplyr)
+library(lubridate)
+ems_fire <- ems_fire %>% 
+  filter(service == "EMS", call >= ymd_hms("2018-01-31 00:00:00"))
 
-# Blah
+# 
