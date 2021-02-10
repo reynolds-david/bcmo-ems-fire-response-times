@@ -43,9 +43,6 @@ ems_fire$enroute_arrive <- difftime(ems_fire$FirstArrive, ems_fire$FirstEnroute,
 ems_fire$dispatch_arrive <- ems_fire$dispatch_enroute + ems_fire$enroute_arrive
 ems_fire$call_arrive <- difftime(ems_fire$FirstArrive, ems_fire$CallTime, units = "min")
 
-# Create alpha character column (FIX THIS)
-ems_fire$alpha <- str_sub(ems_fire$Nature, 3, 3)
-
 # Filter for calls with time differences greater than zero
 ems_fire <- ems_fire %>% 
   filter(call_dispatch > 0, dispatch_enroute > 0, enroute_arrive > 0, call_arrive > 0)
@@ -62,7 +59,7 @@ latlon <- data.frame(lon = pj$x, lat = pj$y)
 # Combine data
 ems_fire <- cbind(ems_fire, latlon)
 
-# Rename columns (ADD ALPHA)
+# Rename columns
 ems_fire <- ems_fire %>% 
   select(date, year, "call" = CallTime, "dispatch" = FirstDispatchTime, "enroute" = FirstEnroute,
          "arrive" = FirstArrive, "transport" = FirstTransport, "clear" = LastClear, "service" = Service, 
@@ -71,6 +68,13 @@ ems_fire <- ems_fire %>%
 
 # Remove observations with (0, 0)
 ems_fire <- subset(ems_fire, x != 0 & y != 0)
+
+# Remove duplicated rows
+library(data.table)
+ems_fire$call_factor <- as.factor(ems_fire$call)
+ems_fire <- data.table(ems_fire)
+ems_fire <- ems_fire[, .SD[which.min(dispatch)], by = list(call_factor, street)]
+ems_fire <- as.data.frame(ems_fire)[, -1]
 
 # Convert time columns to characters
 time <- c("call", "dispatch", "enroute", "arrive", "transport", "clear")
@@ -82,6 +86,12 @@ ems_fire[, response] <- lapply(ems_fire[, response], as.numeric)
 
 # Take the log of the responses
 ems_fire[, response] <- lapply(ems_fire[, response], log)
+
+# Reorder columns
+ems_fire <- ems_fire %>% 
+  select(date, year, call, dispatch, enroute, arrive, transport, clear, service, agency, nature, 
+         unit, call_dispatch, dispatch_enroute, enroute_arrive, dispatch_arrive, call_arrive, street, 
+         x, y, lon, lat)
 
 # Save the data as a CSV
 write_csv(ems_fire, "/Users/davidreynolds/Downloads/Documents/Mizzou/2020-21/Classes/Spring semester/STAT 8090/bcmo-ems-fire-response-times/Data/ems_fire.csv")
