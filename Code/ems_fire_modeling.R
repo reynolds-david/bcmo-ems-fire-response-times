@@ -75,14 +75,14 @@ grid_pca_loadings <- grid_pca$rotation
 library(NMF)
 
 # On the time windows
-time_nmf <- nmf(ems_windows, 5, method = "lee")
+time_nmf <- nmf(t(ems_windows), 5, method = "lee")
 time_nmf_w <- basis(time_nmf)
 
 # On the cells
-grid_nmf <- nmf(ems_cells, 5, method = "lee")
+grid_nmf <- nmf(t(ems_cells), 5, method = "lee")
 grid_nmf_w <- basis(grid_nmf)
 
-## Modeling
+## Fit the model
 
 # Par: beta1, beta2, alpha0, alpha1, alpha2, lambda0
 library(nimble)
@@ -95,23 +95,20 @@ code <- nimbleCode({
   alpha2 ~ dnorm(0, sd = 10)
   lambda0 ~ dgamma(0.01, 0.01)
   
-  for (i in 1:100) {
-    for (j in 1:100) {
-      # 0.02: since true data window is [-1, 1]
-      lambda_D[i, j] <- lambda0 * exp(beta1 * 0.02 * (i - 50) + 
-                                        beta2 * 0.02 * (j - 50))
-    }
+  for (i in 1:ncol(ems_cells)) {
+      # 0.02: Integration
+      lambda_D[i] <- lambda0 * exp(beta1 * x1[i] + 
+                                        beta2 * x2[i] + beta3 * x3[i] +...)
   }
-  s_ll <- 4 * mean(lambda_D[1:100, 1:100])
+  s_ll <- mean(lambda_D[1:100, 1:100])
   for (i in 1:N) {
-    lambda[i] <- lambda0 * exp(beta1 * x[i] + beta2 * y[i])
-    mark_logit[i] <- alpha0 + xi * lambda[i] / 1000 + alpha1 * z1[i] + alpha2 * z2[i]
+    lambda[i] <- lambda0 * exp(beta1 * x1_star[i] + beta2 * x2_star[i] + ...)
+    mark_mean[i] <- alpha0 + xi * lambda[i] / 1000 + alpha1 * z1_star[i] + alpha2 * z2_star[i] + ...
     logmark[i] <- -mark[i] * log(1+exp(-mark_logit[i])) + 
       (1 - mark[i]) * (-mark_logit[i] - log(1+exp(-mark_logit[i])))
   }
   ll_m <- sum(logmark[1:N])
   log_ll <- sum(log(lambda[1:N]))
-  
 })
 
 # Define log-likelihood
@@ -128,14 +125,15 @@ llFun <- nimbleFunction(
   }
 )
 
-constants <- list(N = length(pp_iten))
+constants <- list(N = nrow(ems))
 
 data <- list(
-  x = ems$lon,
-  y = ems$lat,
   mark = ems$call_arrive,
-  z1 = grid_pca_loadings,
-  z2 = time_pca_loadings
+  z1 = grid_pca_loadings[,1],
+  z2 = time_pca_loadings[,2],
+  z3 = 
+  z4 =
+  z5 = 
 )
 
 # Initial values for MCMC sampling
