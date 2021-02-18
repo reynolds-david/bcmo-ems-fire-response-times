@@ -93,5 +93,21 @@ ems_fire <- ems_fire %>%
          unit, call_dispatch, dispatch_enroute, enroute_arrive, dispatch_arrive, call_arrive, street, 
          x, y, lon, lat)
 
+# Remove more observations that are outside of Boone County
+library(maps)
+library(splancs)
+ems_fire_points <- as.points(ems_fire$lon, ems_fire$lat)
+boone <- map("county", "missouri,boone", fill = TRUE, col = "transparent", plot = FALSE)
+boone <- as.points(boone$x, boone$y)
+pointmap(ems_fire_points)
+polymap(boone, add = TRUE)
+in_out <- inout(ems_fire_points, boone)
+index <- seq(from = 1, to = length(in_out), length.out = length(in_out))
+in_out <- cbind(in_out, index)
+ems_fire$in_out <- in_out
+ems_fire <- ems_fire %>% 
+  filter(in_out == 1)
+ems_fire$in_out <- NULL
+
 # Save the data as a CSV
 write_csv(ems_fire, "/Users/davidreynolds/Downloads/Documents/Mizzou/2020-21/Classes/Spring semester/STAT 8090/bcmo-ems-fire-response-times/Data/ems_fire.csv")
