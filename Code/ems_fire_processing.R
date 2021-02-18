@@ -102,8 +102,6 @@ boone <- as.points(boone$x, boone$y)
 pointmap(ems_fire_points)
 polymap(boone, add = TRUE)
 in_out <- inout(ems_fire_points, boone)
-index <- seq(from = 1, to = length(in_out), length.out = length(in_out))
-in_out <- cbind(in_out, index)
 ems_fire$in_out <- in_out
 ems_fire <- ems_fire %>% 
   filter(in_out == 1)
