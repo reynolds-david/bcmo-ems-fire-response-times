@@ -27,7 +27,7 @@ ems$window <- cut(ems$call, breaks = "15 min")
 ems_windows <- count(ems, month_year, window)
 ems_windows$window <- as.character(ems_windows$window)
 ems_windows$window <- str_sub(ems_windows$window, 12, 19)
-ems_windows <- count(ems_windows, month_year, window) 
+ems_windows <- count(ems_windows, month_year, window)
 
 # Specify the time intervals as the columns
 library(tidyr)
@@ -39,27 +39,59 @@ ems_windows[is.na(ems_windows)] <- 0
 
 ## Create a grid for Boone County
 
-# Create the grid
-xgrid <- seq(-92.6, -92.08, length.out = 40)
-ygrid <- seq(38.65, 39.28, length.out = 75)
+# Create Boone County polygon
+library(maps)
+library(splancs)
+boone <- map("county", "missouri,boone", fill = TRUE, col = "transparent", plot = FALSE)
+boone <- as.points(boone$x, boone$y)
 
-# Plot the grid
-library(ggplot2)
-ggplot() + geom_point(data = ems, aes(x = lon, y = lat)) + geom_hline(aes(yintercept = ygrid)) + 
-  geom_vline(aes(xintercept = xgrid))
+# Generate centroids inside Boone County
+ems_grid <- gridpts(boone, npts = 1000)
 
-# Assign each call to a cell
-xcell <- unlist(lapply(ems$lon, function(x) min(which(xgrid > x))))
-ycell <- unlist(lapply(ems$lat, function(y) min(which(ygrid > y))))
-ems$cell <- (length(xgrid) - 1) * ycell + xcell
+# Plot the Boone County polygon and the centroids
+pointmap(ems_grid)
+polymap(boone, add = TRUE)
+
+# Convert lat and lon to points
+ems_points <- as.points(ems$lon, ems$lat)
+
+# Plot the Boone County polygon and the location of calls
+pointmap(ems_points)
+polymap(boone, add = TRUE)
+
+# Assign each call to its nearest centroid
+library(spatstat)
+ems_ppp_window1 <- owin(xrange = c(min(ems$lon), max(ems$lon)), yrange = c(min(ems$lat), max(ems$lat)))
+ems_points_ppp <- ppp(ems$lon, ems$lat, ems_ppp_window1)
+ems_grid_ppp <- as.matrix(ems_grid)
+ems_ppp_window2 <- owin(xrange = c(min(ems_grid_ppp[,1]), max(ems_grid_ppp[,1])), yrange = c(min(ems_grid_ppp[,2]), max(ems_grid_ppp[,2])))
+ems_grid_ppp <- ppp(ems_grid_ppp[,1], ems_grid_ppp[,2], ems_ppp_window2)
+nn <- nncross(ems_points_ppp, ems_grid_ppp)
+ems$cell <- nn$which
 
 # Count the number of calls in each cell
 ems_cells <- count(ems, month_year, cell)
 ems_cells <- spread(ems_cells, cell, n)
 ems_cells <- as.data.frame(ems_cells)
-rownames(ems_cells) <- ems_cells$month_year
+ems_cells_rownames <- ems_cells$month_year
 ems_cells <- ems_cells[, -1]
 ems_cells[is.na(ems_cells)] <- 0
+
+# Make sure cells with no calls are included
+cols <- as.numeric(colnames(ems_cells))
+ems_cells2 <- matrix(NA, nrow = nrow(ems_cells), ncol = 1000)
+j <- 1
+for (i in 1:1000) {
+  if (i %in% cols) {
+    ems_cells2[,i] <- ems_cells[,j]
+    j <- j + 1
+  } else {
+    ems_cells2[,i] <- rep(0, nrow(ems_cells))
+  }
+}
+
+ems_cells <- ems_cells2
+rownames(ems_cells) <- ems_cells_rownames
 
 ## Perform PCA
 
