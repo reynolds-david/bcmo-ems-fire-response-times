@@ -13,7 +13,8 @@ ems_fire <- ems_fire %>%
 
 # Plot all points
 library(ggplot2)
-ggplot(data = ems_fire, aes(x = lon, y = lat)) + geom_point()
+ggplot(data = ems_fire, aes(x = lon, y = lat)) + geom_point() + 
+  labs(title = "EMS calls in Boone County (2019)", x = "Longitude", y = "Latitude")
 
 # Take a random sample of calls
 set.seed(1)
