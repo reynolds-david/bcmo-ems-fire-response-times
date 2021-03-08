@@ -104,6 +104,10 @@ time_pca_loadings <- time_pca$rotation
 grid_pca <- prcomp(ems_cells)
 grid_pca_loadings <- grid_pca$rotation
 
+## Generate B-spline basis matrix
+library(splines)
+time_basis <- bs(1:96, 5)
+
 ## Perform NMF
 library(NMF)
 
@@ -115,28 +119,42 @@ time_nmf_w <- basis(time_nmf)
 grid_nmf <- nmf(t(ems_cells), 5, method = "lee")
 grid_nmf_w <- basis(grid_nmf)
 
-# Plot first NMF basis over time
-library(ggplot2)
-library(scales)
-nmf_basis_time <- as.data.frame(cbind(rownames(time_nmf_w), time_nmf_w[,1]))
-nmf_basis_time$value <- as.numeric(nmf_basis_time$V2)
-nmf_basis_time$time <- as.POSIXct(nmf_basis_time$V1, format = "%H:%M:%S")
-
-ggplot(data = nmf_basis_time, aes(x = time, y = value, group = 1)) + geom_line() + 
-  scale_x_datetime(breaks = date_breaks("5 hour"), labels = date_format("%H:%M:%S"))
-
-# Plot the NMF bases over space
-library(akima)
+## Plot the NMF bases over time
+library(dplyr)
 library(ggplot2)
 library(reshape2)
+
+# Melt time_nmf_w by time
+time_nmf_w_melt <- as.data.frame(time_nmf_w)
+time_nmf_w_melt$time <- rownames(time_nmf_w_melt)
+time_nmf_w_melt <- melt(time_nmf_w_melt, "time")
+
+# Recode variable
+time_nmf_w_melt$variable <- as.character(time_nmf_w_melt$variable)
+time_nmf_w_melt$variable <- recode(time_nmf_w_melt$variable, V1 = "1", V2 = "2", V3 = "3", V4 = "4", V5 = "5")
+time_nmf_w_melt$variable <- as.numeric(time_nmf_w_melt$variable)
+
+# Plot the bases
+ggplot(data = time_nmf_w_melt, aes(x = time, y = variable, fill = value)) + geom_tile() + 
+  labs(title = "NMF bases over time", x = "Time", y = "Basis", fill = "Value") + theme_minimal() + 
+  theme(axis.text.x = element_blank(), axis.title.x = element_text(face = "bold", size = 15), 
+        axis.title.y = element_text(face = "bold", size = 15), plot.title = element_text(face = "bold", size = 25),
+        legend.title = element_text(face = "bold", size = 15), panel.grid.major = element_blank()) +
+  scale_fill_gradient(low = "white", high = "red")
+
+## Plot the NMF bases over space
+
+## Define plot_basis
+grid_points <- as.points(ems_grid)
 plot_basis <- function(x) {
   nmf_basis_space <- as.data.frame(cbind(ems_grid, x))
   nmf_basis_space <- nmf_basis_space %>% 
     select("lon" = V1, "lat" = V2, "value" = x)
-  nmf_basis_space <- with(nmf_basis_space, interp(x = lon, y = lat, z = value, duplicate = "median"))
-  filled.contour(x = nmf_basis_space$x, y = nmf_basis_space$y, z = nmf_basis_space$z, 
-                 color.palette = colorRampPalette(c("white", "blue")))
+  ggplot() + geom_polygon(data = as.data.frame(boone), aes(x = V1, y = V2), color = "deepskyblue3", fill = "white") +
+    geom_tile(data = nmf_basis_space, aes(x = lon, y = lat, fill = value))
 }
+
+ggplot(data = nmf_basis_space, aes(x = lon, y = lat, z = value)) + stat_contour(geom = "polygon", aes(fill = ..level..))
 
 plot_basis(grid_nmf_w[,1])
 plot_basis(grid_nmf_w[,2])
@@ -144,10 +162,30 @@ plot_basis(grid_nmf_w[,3])
 plot_basis(grid_nmf_w[,4])
 plot_basis(grid_nmf_w[,5])
 
-## Fit the model
+## Obtain x and z for 2019
+
+# Read in 2019 data
+ems_2019 <- read_csv("ems_fire.csv", col_types = "cfTTTTTTffccnnnnncnnnn")
+ems_2019 <- ems_2019 %>% 
+  filter(service == "EMS", year == 2019)
+
+# Create month_year
+ems_2019$month_year <- as.factor(paste(str_sub(ems_2019$date, 1, 2), str_sub(ems_2019$date, 7, 10), sep = "/"))
+
+# Convert call to POSIXct
+ems_2019$call <- ymd_hms(ems_2019$call)
+
+# Cut call by 15-minute intervals
+ems_2019$window <- cut(ems_2019$call, breaks = "15 min")
+
+# Assign each call to its nearest centroid
+ems_ppp_window1 <- owin(xrange = c(min(ems_2019$lon), max(ems_2019$lon)), yrange = c(min(ems_2019$lat), max(ems_2019$lat)))
+ems_points_ppp <- ppp(ems_2019$lon, ems_2019$lat, ems_ppp_window1)
+nn <- nncross(ems_points_ppp, ems_grid_ppp)
+ems_2019$cell <- nn$which
 
 # Obtain x and z
-z <- str_sub(as.character(ems$window), 12, 19)
+z <- str_sub(as.character(ems_2019$window), 12, 19)
 z <- as.data.frame(z)
 z <- z %>% 
   select("time" = z)
@@ -156,7 +194,7 @@ time_nmf$time <- rownames(time_nmf)
 z <- left_join(x = z, y = time_nmf, by = "time")
 z$time <- NULL
 
-x <- ems$cell
+x <- ems_2019$cell
 x <- as.data.frame(x)
 x <- x %>% 
   select("cell" = x)
@@ -165,6 +203,18 @@ grid_nmf <- as.data.frame(grid_nmf_w)
 grid_nmf$cell <- rownames(grid_nmf)
 x <- left_join(x = x, y = grid_nmf, by = "cell")
 x$cell <- NULL
+
+## Obtain z_basis
+z_basis <- str_sub(as.character(ems_2019$window), 12, 19)
+z_basis <- as.data.frame(z_basis)
+z_basis <- z_basis %>% 
+  select("time" = z_basis)
+time_basis <- as.data.frame(time_basis)
+time_basis$time <- rownames(time_nmf)
+z_basis <- left_join(x = z_basis, y = time_basis, by = "time")
+z_basis$time <- NULL
+
+## Fit the model
 
 # Initialize the parameters
 library(nimble)
@@ -182,20 +232,20 @@ code <- nimbleCode({
   beta5 ~ dnorm(0, sd = 10)
   xi ~ dnorm(0, sd = 10)
   lambda0 ~ dgamma(0.01, 0.01)
+  sigma2 ~ dinvgamma(0.1, 0.1)
   
-# Integration 
-  for (i in 1:ncol(ems_cells)) {
-      lambda_D[i] <- lambda0 * exp(beta1 * x1[i] + beta2 * x2[i] + beta3 * x3[i] + 
-                                     beta4 * x4[i] + beta5 * x5[i])
+# Perform integration 
+  for (i in 1:nrow(grid_nmf)) {
+      lambda_D[i] <- lambda0 * exp(beta1 * grid_nmf_w[i,1] + beta2 * grid_nmf_w[i,2] + beta3 * grid_nmf_w[i,3] + 
+                                     beta4 * grid_nmf_w[i,4] + beta5 * grid_nmf_w[i,5])
   }
-  s_ll <- mean(lambda_D[1:100, 1:100])
+  s_ll <- mean(lambda_D[1:247])
   for (i in 1:N) {
     lambda[i] <- lambda0 * exp(beta1 * x1[i] + beta2 * x2[i] + beta3 * x3[i] + 
                                  beta4 * x4[i] + beta5 * x5[i])
-    mark_mean[i] <- alpha0 + xi * lambda[i] / 1000 + alpha1 * z1[i] + alpha2 * z2[i] + 
+    mark_mean[i] <- alpha0 + xi * lambda[i]/10000 + alpha1 * z1[i] + alpha2 * z2[i] + 
       alpha3 * z3[i] + alpha4 * z4[i] + alpha5 * z5[i]
-    logmark[i] <- -mark[i] * log(1+exp(-mark_logit[i])) + 
-      (1 - mark[i]) * (-mark_logit[i] - log(1+exp(-mark_logit[i])))
+    logmark[i] <- -0.5 * log(2 * 3.14) - 0.5 * log(sigma2) - (mark[i] - mark_mean[i])^2 / (2 * sigma2)
   }
   ll_m <- sum(logmark[1:N])
   log_ll <- sum(log(lambda[1:N]))
@@ -214,27 +264,27 @@ llFun <- nimbleFunction(
   }
 )
 
-constants <- list(N = nrow(ems))
+constants <- list(N = nrow(x))
 
 data <- list(
-  mark = ems$call_arrive,
-  x1 = grid_nmf_w[,1],
-  x2 = grid_nmf_w[,2],
-  x3 = grid_nmf_w[,3],
-  x4 = grid_nmf_w[,4],
-  x5 = grid_nmf_w[,5],
-  z1 = time_nmf_w[,1],
-  z2 = time_nmf_w[,2],
-  z3 = time_nmf_w[,3],
-  z4 = time_nmf_w[,4],
-  z5 = time_nmf_w[,5]
+  grid_nmf_w = grid_nmf_w,
+  mark = ems_2019$call_arrive,
+  x1 = x[,1],
+  x2 = x[,2],
+  x3 = x[,3],
+  x4 = x[,4],
+  x5 = x[,5],
+  z1 = z[,1],
+  z2 = z[,2],
+  z3 = z[,3],
+  z4 = z[,4],
+  z5 = z[,5]
 )
 
-# Initial values for MCMC sampling
+# Specify initial values
 inits <- list(alpha0 = 0, alpha1 = 0, alpha2 = 0, alpha3 = 0, alpha4 = 0, alpha5 = 0, 
-              beta1 = 0, beta2 = 0, beta3 = 0, beta4 = 0, beta5 = 0, xi = 0, lambda0 = 1)
-Rmodel <- nimbleModel(code = code, constants = constants, data = data, inits = inits, 
-                      check = FALSE)
+              beta1 = 0, beta2 = 0, beta3 = 0, beta4 = 0, beta5 = 0, xi = 0, lambda0 = 1, sigma2 = 1)
+Rmodel <- nimbleModel(code = code, constants = constants, data = data, inits = inits, check = FALSE)
 RllFun <- llFun(Rmodel)
 mcmcConf <- configureMCMC(Rmodel, nodes = NULL)
 
@@ -265,14 +315,118 @@ mcmcConf$addSampler(target = 'xi', type = 'RW_llFunction',
                     control = list(llFunction = RllFun, includesTarget = FALSE))
 mcmcConf$addSampler(target = 'lambda0', type = 'RW_llFunction', 
                     control = list(llFunction = RllFun, includesTarget = FALSE))
+mcmcConf$addSampler(target = 'sigma2', type = 'RW_llFunction', 
+                    control = list(llFunction = RllFun, includesTarget = FALSE))
 
-# Compile command
+# Compile
 Rmcmc <- buildMCMC(mcmcConf)
 Cmodel<-compileNimble(Rmodel)
 Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 
-# MCMC run
-Cmcmc$run(20000)
+# Run the sampler
+Cmcmc$run(10000)
 
 # Get MCMC samples
-samples <- as.matrix(Cmcmc$mvSamples)[10001:20000, ]
+samples <- as.matrix(Cmcmc$mvSamples)[5001:10000,]
+samples <- samples[seq(1, nrow(samples), by = 10),]
+
+### Perform MCMC diagnostics
+library(coda)
+
+## Convert all the columns of samples into an MCMC object
+alpha0_mcmc <- as.mcmc(samples[,1])
+alpha1_mcmc <- as.mcmc(samples[,2])
+alpha2_mcmc <- as.mcmc(samples[,3])
+alpha3_mcmc <- as.mcmc(samples[,4])
+alpha4_mcmc <- as.mcmc(samples[,5])
+alpha5_mcmc <- as.mcmc(samples[,6])
+beta1_mcmc <- as.mcmc(samples[,7])
+beta2_mcmc <- as.mcmc(samples[,8])
+beta3_mcmc <- as.mcmc(samples[,9])
+beta4_mcmc <- as.mcmc(samples[,10])
+beta5_mcmc <- as.mcmc(samples[,11])
+lambda0_mcmc <- as.mcmc(samples[,12])
+sigma2_mcmc <- as.mcmc(samples[,13])
+xi_mcmc <- as.mcmc(samples[,14])
+
+## Perform diagnostics
+
+# Trace plots
+traceplot(alpha0_mcmc)
+traceplot(alpha1_mcmc)
+traceplot(alpha2_mcmc)
+traceplot(alpha3_mcmc)
+traceplot(alpha4_mcmc)
+traceplot(alpha5_mcmc)
+traceplot(beta1_mcmc)
+traceplot(beta2_mcmc)
+traceplot(beta3_mcmc)
+traceplot(beta4_mcmc)
+traceplot(beta5_mcmc)
+traceplot(lambda0_mcmc)
+traceplot(sigma2_mcmc)
+traceplot(xi_mcmc)
+
+# Autocorrelation plots
+autocorr.plot(alpha0_mcmc)
+autocorr.plot(alpha1_mcmc)
+autocorr.plot(alpha2_mcmc)
+autocorr.plot(alpha3_mcmc)
+autocorr.plot(alpha4_mcmc)
+autocorr.plot(alpha5_mcmc)
+autocorr.plot(beta1_mcmc)
+autocorr.plot(beta2_mcmc)
+autocorr.plot(beta3_mcmc)
+autocorr.plot(beta4_mcmc)
+autocorr.plot(beta5_mcmc)
+autocorr.plot(lambda0_mcmc)
+autocorr.plot(sigma2_mcmc)
+autocorr.plot(xi_mcmc)
+
+# Effective sample size
+effectiveSize(alpha0_mcmc)
+effectiveSize(alpha1_mcmc)
+effectiveSize(alpha2_mcmc)
+effectiveSize(alpha3_mcmc)
+effectiveSize(alpha4_mcmc)
+effectiveSize(alpha5_mcmc)
+effectiveSize(beta1_mcmc)
+effectiveSize(beta2_mcmc)
+effectiveSize(beta3_mcmc)
+effectiveSize(beta4_mcmc)
+effectiveSize(beta5_mcmc)
+effectiveSize(lambda0_mcmc)
+effectiveSize(sigma2_mcmc)
+effectiveSize(xi_mcmc)
+
+# Geweke diagnostic
+geweke.diag(alpha0_mcmc)
+geweke.diag(alpha1_mcmc)
+geweke.diag(alpha2_mcmc)
+geweke.diag(alpha3_mcmc)
+geweke.diag(alpha4_mcmc)
+geweke.diag(alpha5_mcmc)
+geweke.diag(beta1_mcmc)
+geweke.diag(beta2_mcmc)
+geweke.diag(beta3_mcmc)
+geweke.diag(beta4_mcmc)
+geweke.diag(beta5_mcmc)
+geweke.diag(lambda0_mcmc)
+geweke.diag(sigma2_mcmc)
+geweke.diag(xi_mcmc)
+
+# Plot histograms for the parameters
+ggplot(data = as.data.frame(alpha0_mcmc), aes(x = alpha0_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(alpha1_mcmc), aes(x = alpha1_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(alpha2_mcmc), aes(x = alpha2_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(alpha3_mcmc), aes(x = alpha3_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(alpha4_mcmc), aes(x = alpha4_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(alpha5_mcmc), aes(x = alpha5_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(beta1_mcmc), aes(x = beta1_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(beta2_mcmc), aes(x = beta2_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(beta3_mcmc), aes(x = beta3_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(beta4_mcmc), aes(x = beta4_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(beta5_mcmc), aes(x = beta5_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(lambda0_mcmc), aes(x = lambda0_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(sigma2_mcmc), aes(x = sigma2_mcmc)) + geom_histogram()
+ggplot(data = as.data.frame(xi_mcmc), aes(x = xi_mcmc)) + geom_histogram()
